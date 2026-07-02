@@ -134,6 +134,9 @@ uploadForm.addEventListener("submit", async (event) => {
 
 saveButton.addEventListener("click", () => {
   if (!latestNote) return;
+  if (latestNote.id) {
+    localStorage.setItem("learnThaiNote.currentCourseId", String(latestNote.id));
+  }
   localStorage.setItem("learnThaiNote.currentCourse", JSON.stringify(latestNote));
   uploadStatus.textContent = "已保存到首页。返回学习卡片即可复习这门课程。";
 });

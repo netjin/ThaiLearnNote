@@ -57,8 +57,28 @@ docker run --rm -p 5173:5173 --env-file .env learn-thai-note
 - 上传同一课程的多张照片后，自动合并生成词汇、语法说明、易混淆词和例句
 - 将生成结果保存为首页当前复习课程
 
+## 数据保存
+
+生成出的课程总结会保存到 SQLite：
+
+- 本地运行：默认写入 `data/learn-thai-note.sqlite`
+- Docker Compose：默认挂载到 named volume `thai-learn-note-data`
+
+课程里的词汇、例句、语法说明和易混淆点以 JSON 形式保存在数据库记录中。上传的原始图片不保存，只在生成时临时读取。
+
+如果手动 `docker run`，建议挂载数据目录：
+
+```bash
+docker run --rm \
+  -p 5173:5173 \
+  --env-file .env \
+  -v thai-learn-note-data:/app/data \
+  learn-thai-note
+```
+
 ## 配置
 
 - `OPENAI_API_KEY`：服务端调用 OpenAI API 使用，不会暴露到浏览器。
 - `OPENAI_MODEL`：默认 `gpt-4o-mini`，可以换成你账号可用的视觉模型。
 - `PORT`：默认 `5173`。
+- `DATA_DIR`：SQLite 数据目录，默认本地 `./data`，Docker 中为 `/app/data`。

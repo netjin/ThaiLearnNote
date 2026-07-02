@@ -197,24 +197,52 @@ function renderAll() {
   renderSentences();
 }
 
-function loadSavedCourse() {
+function applyCourse(saved) {
+  note = {
+    id: saved.id,
+    title: saved.title || "课程学习笔记",
+    course: saved.course || saved.title || "Thai Course",
+    lesson: saved.lesson || saved.topic || "Lesson",
+    topic: saved.topic || "Thai",
+    vocabulary: saved.vocabulary || [],
+    patterns: saved.patterns || [],
+    sentences: saved.sentences || [],
+    grammarNotes: saved.grammarNotes || [],
+  };
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url);
+  if (!response.ok) return null;
+  return response.json();
+}
+
+async function loadSavedCourse() {
   try {
-    const saved = JSON.parse(localStorage.getItem("learnThaiNote.currentCourse") || "null");
-    if (saved?.vocabulary?.length) {
-      note = {
-        title: saved.title || "课程学习笔记",
-        course: saved.course || saved.title || "Thai Course",
-        lesson: saved.lesson || saved.topic || "Lesson",
-        topic: saved.topic || "Thai",
-        vocabulary: saved.vocabulary || [],
-        patterns: saved.patterns || [],
-        sentences: saved.sentences || [],
-        grammarNotes: saved.grammarNotes || [],
-      };
+    const selectedId = localStorage.getItem("learnThaiNote.currentCourseId");
+    let dbCourse = selectedId ? await fetchJson(`/api/courses/${selectedId}`) : null;
+    if (selectedId && !dbCourse) {
+      localStorage.removeItem("learnThaiNote.currentCourseId");
+      localStorage.removeItem("learnThaiNote.currentCourse");
+    }
+    dbCourse = dbCourse || (await fetchJson("/api/courses/latest"));
+    if (dbCourse?.vocabulary?.length) {
+      applyCourse(dbCourse);
+      localStorage.setItem("learnThaiNote.currentCourseId", String(dbCourse.id));
+      return true;
+    }
+
+    if (selectedId) return false;
+    const legacySaved = JSON.parse(localStorage.getItem("learnThaiNote.currentCourse") || "null");
+    if (legacySaved?.vocabulary?.length) {
+      applyCourse(legacySaved);
+      return true;
     }
   } catch {
     localStorage.removeItem("learnThaiNote.currentCourse");
+    localStorage.removeItem("learnThaiNote.currentCourseId");
   }
+  return false;
 }
 
 document.addEventListener("click", (event) => {
@@ -242,5 +270,7 @@ document.addEventListener("click", (event) => {
 searchInput.addEventListener("input", renderVocabulary);
 hideMeaning.addEventListener("change", renderVocabulary);
 
-loadSavedCourse();
 renderAll();
+loadSavedCourse().then((loaded) => {
+  if (loaded) renderAll();
+});

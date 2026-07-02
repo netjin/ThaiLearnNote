@@ -3,11 +3,13 @@ import express from "express";
 import multer from "multer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getCourse, getLatestCourse, listCourses, saveCourse } from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.use(express.json({ limit: "1mb" }));
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 8 * 1024 * 1024 },
@@ -119,6 +121,37 @@ app.get("/healthz", (_req, res) => {
   res.json({ ok: true });
 });
 
+app.get("/api/courses", (_req, res) => {
+  res.json(listCourses());
+});
+
+app.get("/api/courses/latest", (_req, res) => {
+  const course = getLatestCourse();
+  if (!course) {
+    res.status(404).json({ error: "还没有保存课程。" });
+    return;
+  }
+  res.json(course);
+});
+
+app.get("/api/courses/:id", (req, res) => {
+  const course = getCourse(Number(req.params.id));
+  if (!course) {
+    res.status(404).json({ error: "课程不存在。" });
+    return;
+  }
+  res.json(course);
+});
+
+app.post("/api/courses", (req, res) => {
+  try {
+    const course = saveCourse(normalizeNote(req.body));
+    res.status(201).json(course);
+  } catch (error) {
+    res.status(400).json({ error: error.message || "保存课程失败。" });
+  }
+});
+
 app.post("/api/generate-note", upload.array("images", 8), async (req, res) => {
   try {
     if (!process.env.OPENAI_API_KEY) {
@@ -194,7 +227,7 @@ app.post("/api/generate-note", upload.array("images", 8), async (req, res) => {
 
     const outputText = extractOutputText(responseJson);
     const note = JSON.parse(outputText);
-    res.json(normalizeNote(note));
+    res.json(saveCourse(normalizeNote(note)));
   } catch (error) {
     res.status(500).json({ error: error.message || "生成学习笔记失败。" });
   }
