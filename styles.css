@@ -141,6 +141,50 @@ h1 span {
   box-shadow: var(--shadow);
 }
 
+.course-switcher {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 26px rgba(31, 53, 89, 0.08);
+}
+
+.course-select-label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.course-select-label span {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.course-select-label select {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--paper);
+  font-weight: 850;
+}
+
+.course-switcher .icon-button:disabled,
+.course-select-label select:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
 .generate-shell {
   display: grid;
   grid-template-columns: minmax(300px, 0.42fr) minmax(0, 1fr);
@@ -661,6 +705,15 @@ td:nth-child(3) {
 
   .toolbar {
     grid-template-columns: 1fr;
+  }
+
+  .course-switcher {
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+  }
+
+  .course-select-label {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 
   .generate-shell {

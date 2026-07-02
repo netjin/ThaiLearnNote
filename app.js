@@ -46,6 +46,11 @@ const visibleCount = document.querySelector("#visibleCount");
 const sentenceCount = document.querySelector("#sentenceCount");
 const patternCount = document.querySelector("#patternCount");
 const grammarNotes = document.querySelector("#grammarNotes");
+const courseSelect = document.querySelector("#courseSelect");
+const previousCourse = document.querySelector("#previousCourse");
+const nextCourse = document.querySelector("#nextCourse");
+
+let courses = [];
 
 let note = {
   title: "Places",
@@ -188,9 +193,34 @@ function renderHeader() {
   document.querySelector("#courseLabel").textContent = note.course || note.lesson || note.title;
 }
 
+function getCourseLabel(course) {
+  return [course.course, course.lesson || course.title, course.topic].filter(Boolean).join(" · ");
+}
+
+function renderCourseSwitcher() {
+  if (!courses.length) {
+    courseSelect.innerHTML = `<option value="">暂无已保存课程</option>`;
+    courseSelect.disabled = true;
+    previousCourse.disabled = true;
+    nextCourse.disabled = true;
+    return;
+  }
+
+  courseSelect.disabled = false;
+  previousCourse.disabled = courses.length < 2;
+  nextCourse.disabled = courses.length < 2;
+  courseSelect.innerHTML = courses
+    .map((course) => `<option value="${course.id}">${getCourseLabel(course)}</option>`)
+    .join("");
+  if (note.id) {
+    courseSelect.value = String(note.id);
+  }
+}
+
 function renderAll() {
   searchInput.value = "";
   renderHeader();
+  renderCourseSwitcher();
   renderVocabulary();
   renderGrammarNotes();
   renderPatterns();
@@ -219,6 +249,7 @@ async function fetchJson(url) {
 
 async function loadSavedCourse() {
   try {
+    courses = (await fetchJson("/api/courses")) || [];
     const selectedId = localStorage.getItem("learnThaiNote.currentCourseId");
     let dbCourse = selectedId ? await fetchJson(`/api/courses/${selectedId}`) : null;
     if (selectedId && !dbCourse) {
@@ -245,6 +276,26 @@ async function loadSavedCourse() {
   return false;
 }
 
+async function selectCourseById(id) {
+  const selected = await fetchJson(`/api/courses/${id}`);
+  if (!selected?.vocabulary?.length) return;
+  applyCourse(selected);
+  localStorage.setItem("learnThaiNote.currentCourseId", String(selected.id));
+  renderAll();
+}
+
+function getCurrentCourseIndex() {
+  return courses.findIndex((course) => String(course.id) === String(note.id));
+}
+
+function selectCourseByOffset(offset) {
+  if (!courses.length) return;
+  const currentIndex = getCurrentCourseIndex();
+  const startIndex = currentIndex >= 0 ? currentIndex : 0;
+  const nextIndex = (startIndex + offset + courses.length) % courses.length;
+  selectCourseById(courses[nextIndex].id);
+}
+
 document.addEventListener("click", (event) => {
   const speakButton = event.target.closest("[data-speak]");
   if (speakButton) {
@@ -269,6 +320,11 @@ document.addEventListener("click", (event) => {
 
 searchInput.addEventListener("input", renderVocabulary);
 hideMeaning.addEventListener("change", renderVocabulary);
+courseSelect.addEventListener("change", () => {
+  if (courseSelect.value) selectCourseById(courseSelect.value);
+});
+previousCourse.addEventListener("click", () => selectCourseByOffset(-1));
+nextCourse.addEventListener("click", () => selectCourseByOffset(1));
 
 renderAll();
 loadSavedCourse().then((loaded) => {
