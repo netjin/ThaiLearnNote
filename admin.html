@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>泰语课程后台管理</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>后台管理 <span>课程内容</span></h1>
+        <p class="subtitle">上传课程资料生成总结，也可以编辑已保存课程里的词汇、例句、语法说明和易混淆点。</p>
+      </div>
+      <div class="header-actions">
+        <a class="nav-button" href="./index.html">返回学习卡片</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="admin-layout">
+        <aside class="admin-sidebar" aria-label="课程列表">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Courses</p>
+              <h2>课程列表</h2>
+            </div>
+            <button id="refreshCourses" class="icon-button" type="button" aria-label="刷新课程列表">↻</button>
+          </div>
+          <div id="courseList" class="course-list"></div>
+        </aside>
+
+        <section class="admin-main">
+          <section class="upload-card">
+            <div>
+              <p class="eyebrow">Upload</p>
+              <h2>上传课程资料</h2>
+              <p>同一课的词汇、例句、语法说明可以一起上传。生成后会自动保存到数据库，并出现在左侧课程列表。</p>
+            </div>
+
+            <form id="uploadForm" class="admin-upload-form">
+              <label class="course-field">
+                <span>课程名称（可选）</span>
+                <input id="courseInput" name="course" type="text" placeholder="照片里有标题可留空；只在需要修正时填写" />
+              </label>
+
+              <label class="drop-zone">
+                <input id="imageInput" name="images" type="file" accept="image/*" multiple />
+                <span>选择照片</span>
+                <strong id="fileName">未选择文件</strong>
+              </label>
+
+              <button id="generateButton" class="primary-button" type="submit">生成并保存课程</button>
+              <div id="uploadStatus" class="upload-status" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+
+          <section class="editor-panel" aria-label="课程编辑">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Editor</p>
+                <h2 id="editorTitle">选择课程后编辑</h2>
+              </div>
+              <button id="saveCourse" class="primary-button" type="button" disabled>保存修改</button>
+            </div>
+
+            <form id="editorForm" class="course-editor">
+              <div class="editor-grid">
+                <label>
+                  <span>标题</span>
+                  <input id="titleInput" type="text" />
+                </label>
+                <label>
+                  <span>课程</span>
+                  <input id="courseNameInput" type="text" />
+                </label>
+                <label>
+                  <span>单元</span>
+                  <input id="lessonInput" type="text" />
+                </label>
+                <label>
+                  <span>主题</span>
+                  <input id="topicInput" type="text" />
+                </label>
+              </div>
+
+              <label>
+                <span>词汇 JSON</span>
+                <textarea id="vocabularyInput" rows="10" spellcheck="false"></textarea>
+              </label>
+              <label>
+                <span>例句 JSON</span>
+                <textarea id="sentencesInput" rows="8" spellcheck="false"></textarea>
+              </label>
+              <label>
+                <span>语法/用法 JSON</span>
+                <textarea id="grammarInput" rows="8" spellcheck="false"></textarea>
+              </label>
+              <label>
+                <span>易混淆点 JSON</span>
+                <textarea id="patternsInput" rows="8" spellcheck="false"></textarea>
+              </label>
+
+              <div id="editorStatus" class="upload-status" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="./admin.js"></script>
+  </body>
+</html>

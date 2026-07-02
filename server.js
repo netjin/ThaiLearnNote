@@ -3,7 +3,7 @@ import express from "express";
 import multer from "multer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getCourse, getLatestCourse, listCourses, saveCourse } from "./db.js";
+import { getCourse, getLatestCourse, listCourses, saveCourse, updateCourse } from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -149,6 +149,19 @@ app.post("/api/courses", (req, res) => {
     res.status(201).json(course);
   } catch (error) {
     res.status(400).json({ error: error.message || "保存课程失败。" });
+  }
+});
+
+app.put("/api/courses/:id", (req, res) => {
+  try {
+    const course = updateCourse(Number(req.params.id), normalizeNote(req.body));
+    if (!course) {
+      res.status(404).json({ error: "课程不存在。" });
+      return;
+    }
+    res.json(course);
+  } catch (error) {
+    res.status(400).json({ error: error.message || "更新课程失败。" });
   }
 });
 

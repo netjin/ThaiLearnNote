@@ -81,6 +81,38 @@ export function saveCourse(note) {
   return getCourse(Number(result.lastInsertRowid));
 }
 
+export function updateCourse(id, note) {
+  const statement = db.prepare(`
+    UPDATE courses
+    SET
+      title = ?,
+      course = ?,
+      lesson = ?,
+      topic = ?,
+      vocabulary_json = ?,
+      patterns_json = ?,
+      sentences_json = ?,
+      grammar_notes_json = ?,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `);
+
+  const result = statement.run(
+    note.title,
+    note.course,
+    note.lesson,
+    note.topic,
+    JSON.stringify(note.vocabulary),
+    JSON.stringify(note.patterns),
+    JSON.stringify(note.sentences),
+    JSON.stringify(note.grammarNotes),
+    id,
+  );
+
+  if (result.changes === 0) return null;
+  return getCourse(id);
+}
+
 export function listCourses() {
   const rows = db
     .prepare(

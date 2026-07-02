@@ -19,7 +19,8 @@
 ## 页面
 
 - `http://localhost:5173/`：学习卡片首页，显示当前课程。
-- `http://localhost:5173/generate.html`：上传课程资料并生成总结。
+- `http://localhost:5173/admin.html`：后台管理，上传课程资料、编辑已保存课程。
+- `http://localhost:5173/generate.html`：旧上传入口，会自动跳转到后台管理。
 
 ## 本地运行
 
@@ -123,12 +124,15 @@ SKIP_GIT_PULL=1 ./scripts/deploy.sh
 - `GET /api/courses/latest`：读取最新课程。
 - `GET /api/courses/:id`：读取指定课程。
 - `POST /api/courses`：保存课程 JSON。
+- `PUT /api/courses/:id`：更新指定课程 JSON。
 - `POST /api/generate-note`：上传图片，生成课程总结并自动保存。
 
 `POST /api/generate-note` 使用 multipart form：
 
 - `images`：一张或多张图片，最多 8 张。
 - `course`：可选。照片里有标题时可以留空，仅在需要修正课程名时填写。
+
+后台编辑页会把词汇、例句、语法说明和易混淆点显示为 JSON 数组。保存时会校验这些字段必须是数组。
 
 ## 配置
 
@@ -148,7 +152,7 @@ SKIP_GIT_PULL=1 ./scripts/deploy.sh
 node --check server.js
 node --check db.js
 node --check app.js
-node --check generate.js
+node --check admin.js
 npm audit --audit-level=moderate
 docker compose config
 ```

@@ -192,6 +192,20 @@ h1 span {
   align-items: start;
 }
 
+.admin-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.34fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-sidebar,
+.admin-main,
+.editor-panel {
+  min-width: 0;
+}
+
+.admin-sidebar,
 .upload-card,
 .result-panel {
   padding: 18px;
@@ -204,6 +218,112 @@ h1 span {
 .upload-card {
   display: grid;
   gap: 14px;
+}
+
+.admin-main {
+  display: grid;
+  gap: 16px;
+}
+
+.course-list {
+  display: grid;
+  gap: 8px;
+}
+
+.course-list-item {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--paper);
+  cursor: pointer;
+  text-align: left;
+}
+
+.course-list-item.active {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.course-list-item strong,
+.course-list-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.course-list-item strong {
+  font-size: 0.98rem;
+}
+
+.course-list-item span {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.admin-upload-form,
+.course-editor {
+  display: grid;
+  gap: 12px;
+}
+
+.editor-panel {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow);
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.course-editor label,
+.course-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.course-editor label span,
+.course-field span {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.course-editor input,
+.course-field input,
+.course-editor textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--paper);
+  font: inherit;
+  font-weight: 750;
+}
+
+.course-editor input,
+.course-field input {
+  height: 42px;
+  padding: 0 12px;
+}
+
+.course-editor textarea {
+  padding: 12px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.86rem;
+  line-height: 1.55;
 }
 
 .upload-card h2 {
@@ -716,7 +836,12 @@ td:nth-child(3) {
     gap: 6px;
   }
 
-  .generate-shell {
+  .generate-shell,
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-grid {
     grid-template-columns: 1fr;
   }
 
