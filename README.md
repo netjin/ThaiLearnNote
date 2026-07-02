@@ -76,6 +76,37 @@ docker run --rm \
   learn-thai-note
 ```
 
+## 更新部署
+
+服务器上首次克隆后，准备 `.env`：
+
+```bash
+git clone https://github.com/netjin/ThaiLearnNote.git
+cd ThaiLearnNote
+cp .env.example .env
+# 编辑 .env，填入 OPENAI_API_KEY
+```
+
+之后每次更新代码并重启 Docker：
+
+```bash
+./scripts/deploy.sh
+```
+
+脚本会执行：
+
+- 拉取当前 Git 分支最新代码
+- 校验 Docker Compose 配置
+- `docker compose up -d --build --remove-orphans`
+- 清理 dangling Docker 镜像
+- 保留 `thai-learn-note-data` 数据卷，不会删除课程数据库
+
+如果已经手动拉取代码，只想重建容器：
+
+```bash
+SKIP_GIT_PULL=1 ./scripts/deploy.sh
+```
+
 ## 数据保存
 
 课程总结保存到 SQLite：
