@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json({ limit: "1mb" }));
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 8 * 1024 * 1024 },
+  limits: { fileSize: 20 * 1024 * 1024, files: 8 },
   fileFilter: (_req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
       cb(new Error("只支持图片文件"));
@@ -234,6 +234,16 @@ app.post("/api/generate-note", upload.array("images", 8), async (req, res) => {
 });
 
 app.use((error, _req, res, _next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === "LIMIT_FILE_SIZE") {
+      res.status(413).json({ error: "图片太大。请压缩后再上传，或选择较少照片。" });
+      return;
+    }
+    if (error.code === "LIMIT_FILE_COUNT") {
+      res.status(413).json({ error: "一次最多上传 8 张图片。" });
+      return;
+    }
+  }
   res.status(400).json({ error: error.message || "上传失败。" });
 });
 

@@ -12,7 +12,7 @@ let latestNote = null;
 async function generateNoteFromImages(files, course) {
   const formData = new FormData();
   for (const file of files) {
-    formData.append("images", file);
+    formData.append("images", await compressImage(file));
   }
   formData.append("course", course);
 
@@ -25,6 +25,41 @@ async function generateNoteFromImages(files, course) {
     throw new Error(data.error || "生成失败");
   }
   return data;
+}
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(image.src);
+      resolve(image);
+    };
+    image.onerror = reject;
+    image.src = URL.createObjectURL(file);
+  });
+}
+
+async function compressImage(file) {
+  const maxEdge = 1800;
+  const quality = 0.82;
+  const image = await loadImage(file);
+  const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth, image.naturalHeight));
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.drawImage(image, 0, 0, width, height);
+
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+  if (!blob || blob.size >= file.size) return file;
+
+  return new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+    type: "image/jpeg",
+    lastModified: file.lastModified,
+  });
 }
 
 function escapeHtml(value) {
@@ -119,7 +154,7 @@ uploadForm.addEventListener("submit", async (event) => {
   }
 
   generateButton.disabled = true;
-  uploadStatus.textContent = "正在合并识别图片并生成课程总结...";
+  uploadStatus.textContent = "正在压缩图片并生成课程总结...";
 
   try {
     latestNote = await generateNoteFromImages(files, courseInput.value.trim());
