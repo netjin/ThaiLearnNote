@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>上传照片生成泰语学习笔记</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Photo To Note</p>
+        <h1>生成笔记 <span>Thai</span></h1>
+        <p class="subtitle">上传同一课程的多张教材页、例句页或手写笔记，系统会优先从图片标题识别课程主题并合并成一份总结。</p>
+      </div>
+      <div class="header-actions">
+        <a class="nav-button" href="./index.html">返回学习卡片</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="generate-shell" aria-label="上传照片生成学习笔记">
+        <form id="uploadForm" class="upload-card">
+          <div>
+            <p class="eyebrow">Upload</p>
+            <h2>选择课程资料</h2>
+            <p>建议同一课的“词汇、例句、语法说明”一起上传。图片会发送到本地后端，再由后端调用 OpenAI API。</p>
+          </div>
+
+          <label class="course-field">
+            <span>课程名称（可选）</span>
+            <input id="courseInput" name="course" type="text" placeholder="照片里有标题可留空；只在需要修正时填写" />
+          </label>
+
+          <label class="drop-zone">
+            <input id="imageInput" name="images" type="file" accept="image/*" multiple />
+            <span>选择照片</span>
+            <strong id="fileName">未选择文件</strong>
+          </label>
+
+          <button id="generateButton" class="primary-button" type="submit">生成课程总结</button>
+          <div id="uploadStatus" class="upload-status" role="status" aria-live="polite"></div>
+        </form>
+
+        <section class="result-panel" aria-label="生成结果预览">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Preview</p>
+              <h2 id="resultTitle">等待生成</h2>
+            </div>
+            <button id="saveButton" class="text-button hidden" type="button">保存到首页</button>
+          </div>
+          <div id="resultPreview" class="empty-state">
+            上传图片后，这里会显示识别出的词汇、易混淆词和例句。
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="./generate.js"></script>
+  </body>
+</html>

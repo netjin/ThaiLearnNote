@@ -1,0 +1,10 @@
+services:
+  learn-thai-note:
+    build: .
+    ports:
+      - "5173:5173"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      PORT: ${PORT:-5173}
+    restart: unless-stopped

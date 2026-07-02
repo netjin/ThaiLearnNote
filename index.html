@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thai Places 学习卡片</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Thai Course Note</p>
+        <h1>Places <span>地点</span></h1>
+        <p class="subtitle">按课程整理词汇、句型例句、语法要点和易混淆点，适合课后集中复习。</p>
+      </div>
+      <div class="header-actions">
+        <a class="nav-button" href="./generate.html">上传课程资料</a>
+        <div class="date-chip" aria-label="当前课程">
+          <span aria-hidden="true">📚</span>
+          <strong id="courseLabel">7.1 学习笔记</strong>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="toolbar" aria-label="学习工具栏">
+        <label class="search-box">
+          <span>搜索</span>
+          <input id="searchInput" type="search" placeholder="中文 / English / 泰语 / RTGS" autocomplete="off" />
+        </label>
+
+        <div class="segmented" role="group" aria-label="视图切换">
+          <button class="active" type="button" data-view="cards">卡片</button>
+          <button type="button" data-view="table">表格</button>
+        </div>
+
+        <label class="toggle">
+          <input id="hideMeaning" type="checkbox" />
+          <span>遮住释义</span>
+        </label>
+      </section>
+
+      <section class="stats" aria-label="学习统计">
+        <div>
+          <strong id="visibleCount">20</strong>
+          <span>当前词汇</span>
+        </div>
+        <div>
+          <strong id="sentenceCount">6</strong>
+          <span>实用例句</span>
+        </div>
+        <div>
+          <strong id="patternCount">4</strong>
+          <span>易混淆词根</span>
+        </div>
+      </section>
+
+      <section id="cardsView" class="cards-grid" aria-label="地点学习卡片"></section>
+
+      <section id="tableView" class="table-panel hidden" aria-label="地点词汇表">
+        <table>
+          <thead>
+            <tr>
+              <th>中文</th>
+              <th>English</th>
+              <th>泰语</th>
+              <th>泰语发音 (RTGS)</th>
+              <th>语音</th>
+            </tr>
+          </thead>
+          <tbody id="vocabTable"></tbody>
+        </table>
+      </section>
+
+      <section class="study-section">
+        <div class="section-heading">
+          <p class="eyebrow">Grammar</p>
+          <h2>语法/用法</h2>
+        </div>
+        <div id="grammarNotes" class="grammar-list"></div>
+      </section>
+
+      <section class="study-section">
+        <div class="section-heading">
+          <p class="eyebrow">Patterns</p>
+          <h2>容易混淆的词</h2>
+        </div>
+        <div id="patterns" class="pattern-grid"></div>
+      </section>
+
+      <section class="study-section">
+        <div class="section-heading">
+          <p class="eyebrow">Sentences</p>
+          <h2>实用例句</h2>
+        </div>
+        <div id="sentences" class="sentence-list"></div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
