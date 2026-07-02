@@ -1,74 +1,74 @@
 # LearnThaiNote
 
-本地泰语学习卡片应用，初始数据来自 Notion 页面 `7.1 学习笔记`，也支持上传多张照片自动生成课程学习总结。
+泰语课程学习卡片应用。它可以把同一课程的教材照片、例句页、手写笔记或 Notion 截图合并成一份课程总结，并保存到本地 SQLite 数据库，后续部署或重启后仍可继续复习。
 
-## 本地使用
+## 功能
 
-先安装依赖：
+- 按课程/单元组织学习内容，不按日期拆分。
+- 支持一次上传多张图片，优先从图片标题识别课程主题。
+- 自动生成并保存：
+  - 核心词汇：中文、英文、泰语、RTGS 发音
+  - 实用例句
+  - 语法/用法说明
+  - 易混淆点
+- 首页提供卡片和表格两种复习视图。
+- 支持搜索、遮住释义、卡片翻面。
+- 发音使用浏览器 Web Speech API，本身不消耗 OpenAI API 费用。
+- Docker Compose 默认挂载数据卷，课程记录不会因容器重建丢失。
+
+## 页面
+
+- `http://localhost:5173/`：学习卡片首页，显示当前课程。
+- `http://localhost:5173/generate.html`：上传课程资料并生成总结。
+
+## 本地运行
+
+安装依赖：
 
 ```bash
 npm install
 ```
 
-复制环境变量文件并填入 OpenAI API key：
+复制环境变量文件：
 
 ```bash
 cp .env.example .env
 ```
 
-启动服务：
+在 `.env` 中填入：
+
+```bash
+OPENAI_API_KEY=your_api_key_here
+OPENAI_MODEL=gpt-4o-mini
+PORT=5173
+```
+
+启动：
 
 ```bash
 npm start
 ```
 
-然后访问 `http://localhost:5173`。
+访问：
 
-## Docker 使用
+```text
+http://localhost:5173
+```
 
-先准备环境变量：
+## Docker 运行
+
+推荐使用 Docker Compose：
 
 ```bash
 cp .env.example .env
-```
-
-在 `.env` 中填入 `OPENAI_API_KEY`。然后用 Docker Compose 启动：
-
-```bash
+# 编辑 .env，填入 OPENAI_API_KEY
 docker compose up --build
 ```
 
-或者不用 Compose：
+手动 Docker 运行：
 
 ```bash
 docker build -t learn-thai-note .
-docker run --rm -p 5173:5173 --env-file .env learn-thai-note
-```
-
-启动后访问 `http://localhost:5173`。
-
-页面包含：
-
-- 地点词汇卡片和表格视图
-- 中文 / English / 泰语 / RTGS 搜索
-- 遮住释义的复习模式
-- 浏览器 Web Speech API 泰语朗读
-- 语法说明、易混淆词和实用例句区块
-- 上传同一课程的多张照片后，自动合并生成词汇、语法说明、易混淆词和例句
-- 将生成结果保存为首页当前复习课程
-
-## 数据保存
-
-生成出的课程总结会保存到 SQLite：
-
-- 本地运行：默认写入 `data/learn-thai-note.sqlite`
-- Docker Compose：默认挂载到 named volume `thai-learn-note-data`
-
-课程里的词汇、例句、语法说明和易混淆点以 JSON 形式保存在数据库记录中。上传的原始图片不保存，只在生成时临时读取。
-
-如果手动 `docker run`，建议挂载数据目录：
-
-```bash
 docker run --rm \
   -p 5173:5173 \
   --env-file .env \
@@ -76,9 +76,48 @@ docker run --rm \
   learn-thai-note
 ```
 
+## 数据保存
+
+课程总结保存到 SQLite：
+
+- 本地运行：`data/learn-thai-note.sqlite`
+- Docker Compose：named volume `thai-learn-note-data` 挂载到 `/app/data`
+
+数据库保存的是结构化课程总结，包括词汇、例句、语法说明和易混淆点。上传的原始图片不会保存，只在生成时临时读取。
+
+## API
+
+- `GET /healthz`：健康检查。
+- `GET /api/courses`：列出所有已保存课程。
+- `GET /api/courses/latest`：读取最新课程。
+- `GET /api/courses/:id`：读取指定课程。
+- `POST /api/courses`：保存课程 JSON。
+- `POST /api/generate-note`：上传图片，生成课程总结并自动保存。
+
+`POST /api/generate-note` 使用 multipart form：
+
+- `images`：一张或多张图片，最多 8 张。
+- `course`：可选。照片里有标题时可以留空，仅在需要修正课程名时填写。
+
 ## 配置
 
-- `OPENAI_API_KEY`：服务端调用 OpenAI API 使用，不会暴露到浏览器。
-- `OPENAI_MODEL`：默认 `gpt-4o-mini`，可以换成你账号可用的视觉模型。
-- `PORT`：默认 `5173`。
-- `DATA_DIR`：SQLite 数据目录，默认本地 `./data`，Docker 中为 `/app/data`。
+- `OPENAI_API_KEY`：后端调用 OpenAI API 使用，不会暴露给浏览器。
+- `OPENAI_MODEL`：默认 `gpt-4o-mini`，可换成账号可用的视觉模型。
+- `PORT`：服务端口，默认 `5173`。
+- `DATA_DIR`：SQLite 数据目录，本地默认 `./data`，Docker 中默认 `/app/data`。
+
+## 费用说明
+
+- 上传图片生成总结会调用 OpenAI API，会产生 API 费用。
+- 点击播放发音不调用 OpenAI API，使用浏览器本机 Web Speech API。
+
+## 开发检查
+
+```bash
+node --check server.js
+node --check db.js
+node --check app.js
+node --check generate.js
+npm audit --audit-level=moderate
+docker compose config
+```
