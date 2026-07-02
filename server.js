@@ -1,15 +1,25 @@
 import "dotenv/config";
+import crypto from "node:crypto";
 import express from "express";
 import multer from "multer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getCourse, getLatestCourse, listCourses, saveCourse, updateCourse } from "./db.js";
+import {
+  getAdminPasswordHash,
+  getCourse,
+  getLatestCourse,
+  listCourses,
+  saveCourse,
+  updateAdminPassword,
+  updateCourse,
+  verifyAdminPassword,
+} from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "4mb" }));
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024, files: 8 },
@@ -21,6 +31,9 @@ const upload = multer({
     cb(null, true);
   },
 });
+
+const sessionCookieName = "learn_thai_admin";
+const sessionMaxAgeSeconds = 60 * 60 * 12;
 
 const noteSchema = {
   type: "object",
@@ -115,9 +128,159 @@ function normalizeNote(note) {
   };
 }
 
-app.use(express.static(__dirname));
+function parseCookies(req) {
+  return Object.fromEntries(
+    String(req.headers.cookie || "")
+      .split(";")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .map((part) => {
+        const index = part.indexOf("=");
+        return index === -1 ? [part, ""] : [part.slice(0, index), decodeURIComponent(part.slice(index + 1))];
+      }),
+  );
+}
+
+function getSessionSecret(username = "admin") {
+  return process.env.SESSION_SECRET || getAdminPasswordHash(username) || "learn-thai-note-session";
+}
+
+function sign(value, secret) {
+  return crypto.createHmac("sha256", secret).update(value).digest("base64url");
+}
+
+function createSession(username) {
+  const payload = Buffer.from(
+    JSON.stringify({
+      username,
+      exp: Date.now() + sessionMaxAgeSeconds * 1000,
+    }),
+  ).toString("base64url");
+  return `${payload}.${sign(payload, getSessionSecret(username))}`;
+}
+
+function verifySession(req) {
+  const token = parseCookies(req)[sessionCookieName];
+  if (!token) return null;
+
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature) return null;
+
+  let session;
+  try {
+    session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+  } catch {
+    return null;
+  }
+
+  if (session.username !== "admin" || Number(session.exp) < Date.now()) return null;
+
+  const expected = sign(payload, getSessionSecret(session.username));
+  const actualBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  if (actualBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(actualBuffer, expectedBuffer)) {
+    return null;
+  }
+
+  return { username: session.username };
+}
+
+function setSessionCookie(res, username) {
+  res.cookie(sessionCookieName, createSession(username), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE === "true",
+    path: "/",
+    maxAge: sessionMaxAgeSeconds * 1000,
+  });
+}
+
+function clearSessionCookie(res) {
+  res.clearCookie(sessionCookieName, { httpOnly: true, sameSite: "lax", path: "/" });
+}
+
+function requireAdminPage(req, res, next) {
+  const session = verifySession(req);
+  if (!session) {
+    res.redirect(`/login.html?next=${encodeURIComponent(req.originalUrl || "/admin.html")}`);
+    return;
+  }
+  req.admin = session;
+  next();
+}
+
+function requireAdminApi(req, res, next) {
+  const session = verifySession(req);
+  if (!session) {
+    res.status(401).json({ error: "请先登录后台。" });
+    return;
+  }
+  req.admin = session;
+  next();
+}
+
+function sendStaticFile(filename) {
+  return (_req, res) => {
+    res.sendFile(path.join(__dirname, filename));
+  };
+}
+
+app.get("/admin.html", requireAdminPage, sendStaticFile("admin.html"));
+app.get("/admin.js", requireAdminPage, sendStaticFile("admin.js"));
+app.use(
+  express.static(__dirname, {
+    setHeaders(res, filePath) {
+      if (filePath.endsWith(".html")) {
+        res.setHeader("Cache-Control", "no-store");
+      }
+    },
+    index: "index.html",
+  }),
+);
 
 app.get("/healthz", (_req, res) => {
+  res.json({ ok: true });
+});
+
+app.get("/api/auth/status", (req, res) => {
+  const session = verifySession(req);
+  res.json({ authenticated: Boolean(session), username: session?.username || null });
+});
+
+app.post("/api/auth/login", (req, res) => {
+  const username = String(req.body.username || "").trim();
+  const password = String(req.body.password || "");
+
+  if (!verifyAdminPassword(username, password)) {
+    res.status(401).json({ error: "用户名或密码不正确。" });
+    return;
+  }
+
+  setSessionCookie(res, username);
+  res.json({ ok: true, username });
+});
+
+app.post("/api/auth/logout", (_req, res) => {
+  clearSessionCookie(res);
+  res.json({ ok: true });
+});
+
+app.post("/api/auth/change-password", requireAdminApi, (req, res) => {
+  const currentPassword = String(req.body.currentPassword || "");
+  const newPassword = String(req.body.newPassword || "");
+
+  if (!verifyAdminPassword(req.admin.username, currentPassword)) {
+    res.status(400).json({ error: "当前密码不正确。" });
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    res.status(400).json({ error: "新密码至少需要 6 位。" });
+    return;
+  }
+
+  updateAdminPassword(req.admin.username, newPassword);
+  setSessionCookie(res, req.admin.username);
   res.json({ ok: true });
 });
 
@@ -143,7 +306,7 @@ app.get("/api/courses/:id", (req, res) => {
   res.json(course);
 });
 
-app.post("/api/courses", (req, res) => {
+app.post("/api/courses", requireAdminApi, (req, res) => {
   try {
     const course = saveCourse(normalizeNote(req.body));
     res.status(201).json(course);
@@ -152,7 +315,7 @@ app.post("/api/courses", (req, res) => {
   }
 });
 
-app.put("/api/courses/:id", (req, res) => {
+app.put("/api/courses/:id", requireAdminApi, (req, res) => {
   try {
     const course = updateCourse(Number(req.params.id), normalizeNote(req.body));
     if (!course) {
@@ -165,7 +328,7 @@ app.put("/api/courses/:id", (req, res) => {
   }
 });
 
-app.post("/api/generate-note", upload.array("images", 8), async (req, res) => {
+app.post("/api/generate-note", requireAdminApi, upload.array("images", 8), async (req, res) => {
   try {
     if (!process.env.OPENAI_API_KEY) {
       res.status(500).json({ error: "缺少 OPENAI_API_KEY，请先在 .env 中配置。" });

@@ -15,6 +15,7 @@
       </div>
       <div class="header-actions">
         <a class="nav-button" href="./index.html">返回学习卡片</a>
+        <button id="logoutButton" class="nav-button" type="button">退出登录</button>
       </div>
     </header>
 
@@ -29,6 +30,23 @@
             <button id="refreshCourses" class="icon-button" type="button" aria-label="刷新课程列表">↻</button>
           </div>
           <div id="courseList" class="course-list"></div>
+
+          <form id="passwordForm" class="password-card">
+            <div>
+              <p class="eyebrow">Security</p>
+              <h2>修改密码</h2>
+            </div>
+            <label>
+              <span>当前密码</span>
+              <input id="currentPassword" type="password" autocomplete="current-password" />
+            </label>
+            <label>
+              <span>新密码</span>
+              <input id="newPassword" type="password" autocomplete="new-password" />
+            </label>
+            <button class="text-button" type="submit">保存密码</button>
+            <div id="passwordStatus" class="upload-status" role="status" aria-live="polite"></div>
+          </form>
         </aside>
 
         <section class="admin-main">

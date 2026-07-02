@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>后台登录</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="login-shell">
+      <section class="login-card" aria-label="管理员登录">
+        <p class="eyebrow">Admin</p>
+        <h1>后台登录 <span>课程管理</span></h1>
+        <p class="subtitle">登录后可以上传课程资料、编辑学习卡片内容和修改管理员密码。</p>
+
+        <form id="loginForm" class="login-form">
+          <label>
+            <span>管理员账号</span>
+            <input id="usernameInput" type="text" autocomplete="username" value="admin" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input id="passwordInput" type="password" autocomplete="current-password" required autofocus />
+          </label>
+          <button id="loginButton" class="primary-button" type="submit">登录后台</button>
+          <div id="loginStatus" class="upload-status" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+    </main>
+
+    <script src="./login.js"></script>
+  </body>
+</html>

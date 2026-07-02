@@ -14,13 +14,23 @@
 - 首页提供卡片和表格两种复习视图。
 - 支持搜索、遮住释义、卡片翻面。
 - 发音使用浏览器 Web Speech API，本身不消耗 OpenAI API 费用。
+- 后台管理页需要管理员登录，支持登录后修改密码。
 - Docker Compose 默认挂载数据卷，课程记录不会因容器重建丢失。
 
 ## 页面
 
 - `http://localhost:5173/`：学习卡片首页，显示当前课程。
-- `http://localhost:5173/admin.html`：后台管理，上传课程资料、编辑已保存课程。
+- `http://localhost:5173/login.html`：管理员登录。
+- `http://localhost:5173/admin.html`：后台管理，上传课程资料、编辑已保存课程、修改管理员密码。
 - `http://localhost:5173/generate.html`：旧上传入口，会自动跳转到后台管理。
+
+默认管理员账号：
+
+```text
+admin / admin
+```
+
+首次登录后建议立即在后台左侧“修改密码”里更换密码。密码哈希保存在 SQLite 数据库中，Docker 数据卷保留时不会重置。
 
 ## 本地运行
 
@@ -42,6 +52,7 @@ cp .env.example .env
 OPENAI_API_KEY=your_api_key_here
 OPENAI_MODEL=gpt-4o-mini
 PORT=5173
+SESSION_SECRET=replace_with_a_random_long_string
 ```
 
 启动：
@@ -126,6 +137,12 @@ SKIP_GIT_PULL=1 ./scripts/deploy.sh
 - `POST /api/courses`：保存课程 JSON。
 - `PUT /api/courses/:id`：更新指定课程 JSON。
 - `POST /api/generate-note`：上传图片，生成课程总结并自动保存。
+- `GET /api/auth/status`：检查后台登录状态。
+- `POST /api/auth/login`：管理员登录。
+- `POST /api/auth/logout`：退出登录。
+- `POST /api/auth/change-password`：修改管理员密码。
+
+课程读取接口是公开的，首页复习需要使用它们。课程写入、课程更新、图片生成和修改密码接口都需要管理员登录。
 
 `POST /api/generate-note` 使用 multipart form：
 
@@ -140,6 +157,7 @@ SKIP_GIT_PULL=1 ./scripts/deploy.sh
 - `OPENAI_MODEL`：默认 `gpt-4o-mini`，可换成账号可用的视觉模型。
 - `PORT`：服务端口，默认 `5173`。
 - `DATA_DIR`：SQLite 数据目录，本地默认 `./data`，Docker 中默认 `/app/data`。
+- `SESSION_SECRET`：会话签名密钥，生产部署建议设置为随机长字符串。
 
 ## 费用说明
 

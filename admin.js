@@ -9,6 +9,11 @@ const uploadStatus = document.querySelector("#uploadStatus");
 const saveCourse = document.querySelector("#saveCourse");
 const editorTitle = document.querySelector("#editorTitle");
 const editorStatus = document.querySelector("#editorStatus");
+const logoutButton = document.querySelector("#logoutButton");
+const passwordForm = document.querySelector("#passwordForm");
+const currentPassword = document.querySelector("#currentPassword");
+const newPassword = document.querySelector("#newPassword");
+const passwordStatus = document.querySelector("#passwordStatus");
 
 const fields = {
   title: document.querySelector("#titleInput"),
@@ -27,6 +32,10 @@ let currentCourse = null;
 async function fetchJson(url, options) {
   const response = await fetch(url, options);
   const data = await response.json().catch(() => null);
+  if (response.status === 401) {
+    window.location.href = `/login.html?next=${encodeURIComponent(window.location.pathname)}`;
+    throw new Error("请先登录后台。");
+  }
   if (!response.ok) {
     throw new Error(data?.error || "请求失败");
   }
@@ -224,6 +233,35 @@ saveCourse.addEventListener("click", async () => {
     editorStatus.textContent = error.message;
   } finally {
     saveCourse.disabled = false;
+  }
+});
+
+logoutButton.addEventListener("click", async () => {
+  logoutButton.disabled = true;
+  try {
+    await fetchJson("/api/auth/logout", { method: "POST" });
+  } finally {
+    window.location.href = "/login.html";
+  }
+});
+
+passwordForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  passwordStatus.textContent = "正在保存密码...";
+
+  try {
+    await fetchJson("/api/auth/change-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        currentPassword: currentPassword.value,
+        newPassword: newPassword.value,
+      }),
+    });
+    passwordForm.reset();
+    passwordStatus.textContent = "密码已修改。";
+  } catch (error) {
+    passwordStatus.textContent = error.message;
   }
 });
 
