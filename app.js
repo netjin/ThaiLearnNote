@@ -76,6 +76,52 @@ function normalize(text) {
   return text.toLowerCase().trim();
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function hasThai(text) {
+  return /[\u0E00-\u0E7F]/.test(String(text || ""));
+}
+
+function splitThaiAndPronunciation(value) {
+  const text = String(value || "").trim();
+  if (!text.includes("/")) return null;
+
+  const [thaiPart, ...pronunciationParts] = text.split("/");
+  const thai = thaiPart.trim();
+  const pronunciation = pronunciationParts.join("/").trim();
+  if (!hasThai(thai) || !pronunciation) return null;
+  return { thai, pronunciation };
+}
+
+function formatSentence(item) {
+  const rawThai = String(item.th || "").trim();
+  const rawPronunciation = String(item.rtgs || "").trim();
+  const splitFromPronunciation = splitThaiAndPronunciation(rawPronunciation);
+
+  if (!hasThai(rawThai) && splitFromPronunciation) {
+    return {
+      thai: splitFromPronunciation.thai,
+      pronunciation: splitFromPronunciation.pronunciation,
+      meaning: item.zh || rawThai,
+      context: rawThai,
+    };
+  }
+
+  return {
+    thai: rawThai,
+    pronunciation: rawPronunciation,
+    meaning: item.zh || "",
+    context: "",
+  };
+}
+
 function getFilteredVocabulary() {
   const query = normalize(searchInput.value);
   if (!query) return note.vocabulary;
@@ -149,17 +195,20 @@ function renderPatterns() {
 
 function renderSentences() {
   document.querySelector("#sentences").innerHTML = note.sentences
-    .map(
-      (item) => `
+    .map((item) => {
+      const sentence = formatSentence(item);
+      return `
         <article class="sentence-card">
           <div>
-            <strong lang="th">${item.th}</strong>
-            <p>${item.rtgs} · ${item.zh}</p>
+            ${sentence.context ? `<span class="sentence-context">${escapeHtml(sentence.context)}</span>` : ""}
+            <strong lang="th">${escapeHtml(sentence.thai)}</strong>
+            <p class="sentence-pronunciation">${escapeHtml(sentence.pronunciation)}</p>
+            <p class="sentence-meaning">${escapeHtml(sentence.meaning)}</p>
           </div>
-          <button class="icon-button" type="button" data-speak="${item.th}" aria-label="播放 ${item.th}">▶</button>
+          <button class="icon-button" type="button" data-speak="${escapeHtml(sentence.thai)}" aria-label="播放 ${escapeHtml(sentence.thai)}">▶</button>
         </article>
-      `,
-    )
+      `;
+    })
     .join("");
 }
 
