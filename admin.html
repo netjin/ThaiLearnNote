@@ -63,11 +63,24 @@
                 <input id="courseInput" name="course" type="text" placeholder="照片里有标题可留空；只在需要修正时填写" />
               </label>
 
-              <label class="drop-zone">
-                <input id="imageInput" name="images" type="file" accept="image/*" multiple />
-                <span>选择照片</span>
-                <strong id="fileName">未选择文件</strong>
-              </label>
+              <div class="photo-upload">
+                <input id="imageInput" name="images" class="file-input" type="file" accept="image/*" multiple />
+                <input id="cameraInput" class="file-input" type="file" accept="image/*" capture="environment" />
+                <div class="photo-actions">
+                  <button id="pickPhotosButton" class="photo-action" type="button">
+                    <span>选择照片</span>
+                    <small>从相册多选</small>
+                  </button>
+                  <button id="takePhotoButton" class="photo-action" type="button">
+                    <span>拍照</span>
+                    <small>调用手机相机</small>
+                  </button>
+                </div>
+                <div class="file-summary">
+                  <strong id="fileName">未选择文件</strong>
+                  <button id="clearPhotosButton" class="text-button" type="button" hidden>清空</button>
+                </div>
+              </div>
 
               <button id="generateButton" class="primary-button" type="submit">生成并保存课程</button>
               <div id="uploadStatus" class="upload-status" role="status" aria-live="polite"></div>

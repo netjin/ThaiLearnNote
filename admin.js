@@ -3,6 +3,10 @@ const refreshCourses = document.querySelector("#refreshCourses");
 const uploadForm = document.querySelector("#uploadForm");
 const courseInput = document.querySelector("#courseInput");
 const imageInput = document.querySelector("#imageInput");
+const cameraInput = document.querySelector("#cameraInput");
+const pickPhotosButton = document.querySelector("#pickPhotosButton");
+const takePhotoButton = document.querySelector("#takePhotoButton");
+const clearPhotosButton = document.querySelector("#clearPhotosButton");
 const fileName = document.querySelector("#fileName");
 const generateButton = document.querySelector("#generateButton");
 const uploadStatus = document.querySelector("#uploadStatus");
@@ -28,6 +32,7 @@ const fields = {
 
 let courses = [];
 let currentCourse = null;
+let selectedFiles = [];
 
 async function fetchJson(url, options) {
   const response = await fetch(url, options);
@@ -145,6 +150,34 @@ async function generateNoteFromImages(files, course) {
   });
 }
 
+function fileKey(file) {
+  return [file.name, file.size, file.lastModified].join(":");
+}
+
+function addSelectedFiles(files) {
+  const existing = new Set(selectedFiles.map(fileKey));
+  for (const file of files) {
+    if (!file.type.startsWith("image/") || existing.has(fileKey(file))) continue;
+    selectedFiles.push(file);
+    existing.add(fileKey(file));
+  }
+  updateSelectedFileSummary();
+}
+
+function updateSelectedFileSummary() {
+  clearPhotosButton.hidden = selectedFiles.length === 0;
+  fileName.textContent = selectedFiles.length
+    ? `${selectedFiles.length} 张图片：${selectedFiles.map((file) => file.name).join("、")}`
+    : "未选择文件";
+}
+
+function clearSelectedFiles() {
+  selectedFiles = [];
+  imageInput.value = "";
+  cameraInput.value = "";
+  updateSelectedFileSummary();
+}
+
 function parseJsonArray(field, label) {
   try {
     const value = JSON.parse(field.value || "[]");
@@ -184,15 +217,34 @@ refreshCourses.addEventListener("click", () => {
   });
 });
 
+pickPhotosButton.addEventListener("click", () => {
+  imageInput.click();
+});
+
+takePhotoButton.addEventListener("click", () => {
+  cameraInput.click();
+});
+
+clearPhotosButton.addEventListener("click", () => {
+  clearSelectedFiles();
+  uploadStatus.textContent = "";
+});
+
 imageInput.addEventListener("change", () => {
-  const files = Array.from(imageInput.files);
-  fileName.textContent = files.length ? `${files.length} 张图片：${files.map((file) => file.name).join("、")}` : "未选择文件";
+  addSelectedFiles(Array.from(imageInput.files));
+  imageInput.value = "";
+  uploadStatus.textContent = "";
+});
+
+cameraInput.addEventListener("change", () => {
+  addSelectedFiles(Array.from(cameraInput.files));
+  cameraInput.value = "";
   uploadStatus.textContent = "";
 });
 
 uploadForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const files = Array.from(imageInput.files);
+  const files = [...selectedFiles];
   if (!files.length) {
     uploadStatus.textContent = "请先选择至少一张照片。";
     return;
@@ -206,7 +258,7 @@ uploadForm.addEventListener("submit", async (event) => {
     localStorage.setItem("learnThaiNote.currentCourseId", String(created.id));
     uploadStatus.textContent = `已生成并保存：${created.vocabulary.length} 个词汇，${created.sentences.length} 条例句。`;
     uploadForm.reset();
-    fileName.textContent = "未选择文件";
+    clearSelectedFiles();
     await loadCourses(created.id);
   } catch (error) {
     uploadStatus.textContent = error.message;
