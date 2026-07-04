@@ -149,9 +149,10 @@ button.nav-button {
 
 .course-switcher {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 56px minmax(260px, 560px) 56px;
   gap: 10px;
   align-items: center;
+  justify-content: center;
   margin-bottom: 14px;
   padding: 12px;
   border: 1px solid var(--line);
@@ -160,33 +161,89 @@ button.nav-button {
   box-shadow: 0 10px 26px rgba(31, 53, 89, 0.08);
 }
 
-.course-select-label {
+.course-picker {
+  position: relative;
+  min-width: 0;
+}
+
+.course-menu-button {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
-  min-width: 0;
-}
-
-.course-select-label span {
-  color: var(--muted);
-  font-weight: 900;
-}
-
-.course-select-label select {
   width: 100%;
   min-width: 0;
-  height: 42px;
-  padding: 0 12px;
+  min-height: 46px;
+  padding: 8px 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--ink);
   background: var(--paper);
+  box-shadow: inset 0 0 0 1px rgba(33, 113, 212, 0.04);
+  cursor: pointer;
+  text-align: left;
+}
+
+.course-menu-button::after {
+  content: "⌄";
+  color: var(--blue);
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.course-menu-button span {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.course-menu-button strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 1rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.course-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 4px;
+  max-height: 280px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: var(--shadow);
+}
+
+.course-menu-item {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
   font-weight: 850;
+  text-align: left;
+}
+
+.course-menu-item:hover,
+.course-menu-item.active {
+  color: var(--blue);
+  background: #edf5ff;
 }
 
 .course-switcher .icon-button:disabled,
-.course-select-label select:disabled {
+.course-menu-button:disabled {
   cursor: not-allowed;
   opacity: 0.52;
 }
@@ -966,9 +1023,13 @@ td:nth-child(3) {
     grid-template-columns: 42px minmax(0, 1fr) 42px;
   }
 
-  .course-select-label {
-    grid-template-columns: 1fr;
-    gap: 6px;
+  .course-menu-button {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .course-menu-button span {
+    display: none;
   }
 
   .generate-shell,

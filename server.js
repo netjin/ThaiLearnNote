@@ -115,6 +115,22 @@ function extractOutputText(responseJson) {
   return parts.join("\n").trim();
 }
 
+function hasThai(text) {
+  return /[\u0E00-\u0E7F]/.test(String(text || ""));
+}
+
+function normalizeSentences(sentences) {
+  if (!Array.isArray(sentences)) return [];
+
+  return sentences
+    .map((sentence) => ({
+      th: String(sentence?.th || "").trim(),
+      rtgs: String(sentence?.rtgs || "").trim(),
+      zh: String(sentence?.zh || "").trim(),
+    }))
+    .filter((sentence) => hasThai(sentence.th));
+}
+
 function normalizeNote(note) {
   return {
     title: note.title?.trim() || "课程学习笔记",
@@ -123,9 +139,14 @@ function normalizeNote(note) {
     topic: note.topic?.trim() || "Thai",
     vocabulary: Array.isArray(note.vocabulary) ? note.vocabulary : [],
     patterns: Array.isArray(note.patterns) ? note.patterns : [],
-    sentences: Array.isArray(note.sentences) ? note.sentences : [],
+    sentences: normalizeSentences(note.sentences),
     grammarNotes: Array.isArray(note.grammarNotes) ? note.grammarNotes : [],
   };
+}
+
+function sanitizeCourseResponse(course) {
+  if (!course) return null;
+  return { ...course, ...normalizeNote(course) };
 }
 
 function parseCookies(req) {
@@ -285,7 +306,7 @@ app.post("/api/auth/change-password", requireAdminApi, (req, res) => {
 });
 
 app.get("/api/courses", (_req, res) => {
-  res.json(listCourses());
+  res.json(listCourses().map(sanitizeCourseResponse));
 });
 
 app.get("/api/courses/latest", (_req, res) => {
@@ -294,7 +315,7 @@ app.get("/api/courses/latest", (_req, res) => {
     res.status(404).json({ error: "还没有保存课程。" });
     return;
   }
-  res.json(course);
+  res.json(sanitizeCourseResponse(course));
 });
 
 app.get("/api/courses/:id", (req, res) => {
@@ -303,7 +324,7 @@ app.get("/api/courses/:id", (req, res) => {
     res.status(404).json({ error: "课程不存在。" });
     return;
   }
-  res.json(course);
+  res.json(sanitizeCourseResponse(course));
 });
 
 app.post("/api/courses", requireAdminApi, (req, res) => {

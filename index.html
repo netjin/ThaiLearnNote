@@ -25,12 +25,13 @@
     <main>
       <section class="course-switcher" aria-label="课程选择">
         <button id="previousCourse" class="icon-button" type="button" aria-label="上一课">‹</button>
-        <label class="course-select-label">
-          <span>课程</span>
-          <select id="courseSelect">
-            <option value="">暂无已保存课程</option>
-          </select>
-        </label>
+        <div class="course-picker">
+          <button id="courseMenuButton" class="course-menu-button" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span>课程</span>
+            <strong id="courseSelectLabel">暂无已保存课程</strong>
+          </button>
+          <div id="courseMenu" class="course-menu hidden" role="listbox"></div>
+        </div>
         <button id="nextCourse" class="icon-button" type="button" aria-label="下一课">›</button>
       </section>
 

@@ -46,7 +46,9 @@ const visibleCount = document.querySelector("#visibleCount");
 const sentenceCount = document.querySelector("#sentenceCount");
 const patternCount = document.querySelector("#patternCount");
 const grammarNotes = document.querySelector("#grammarNotes");
-const courseSelect = document.querySelector("#courseSelect");
+const courseMenuButton = document.querySelector("#courseMenuButton");
+const courseSelectLabel = document.querySelector("#courseSelectLabel");
+const courseMenu = document.querySelector("#courseMenu");
 const previousCourse = document.querySelector("#previousCourse");
 const nextCourse = document.querySelector("#nextCourse");
 
@@ -122,6 +124,10 @@ function formatSentence(item) {
   };
 }
 
+function getDisplaySentences() {
+  return note.sentences.map(formatSentence).filter((sentence) => hasThai(sentence.thai));
+}
+
 function getFilteredVocabulary() {
   const query = normalize(searchInput.value);
   if (!query) return note.vocabulary;
@@ -194,10 +200,11 @@ function renderPatterns() {
 }
 
 function renderSentences() {
-  document.querySelector("#sentences").innerHTML = note.sentences
-    .map((item) => {
-      const sentence = formatSentence(item);
-      return `
+  const sentences = getDisplaySentences();
+  document.querySelector("#sentences").innerHTML = sentences.length
+    ? sentences
+        .map(
+          (sentence) => `
         <article class="sentence-card">
           <div>
             ${sentence.context ? `<span class="sentence-context">${escapeHtml(sentence.context)}</span>` : ""}
@@ -207,9 +214,10 @@ function renderSentences() {
           </div>
           <button class="icon-button" type="button" data-speak="${escapeHtml(sentence.thai)}" aria-label="播放 ${escapeHtml(sentence.thai)}">▶</button>
         </article>
-      `;
-    })
-    .join("");
+      `,
+        )
+        .join("")
+    : `<div class="empty-state compact">当前课程暂无可直接朗读的泰语例句。</div>`;
 }
 
 function renderGrammarNotes() {
@@ -231,7 +239,7 @@ function renderGrammarNotes() {
 function renderVocabulary() {
   const items = getFilteredVocabulary();
   visibleCount.textContent = items.length;
-  sentenceCount.textContent = note.sentences.length;
+  sentenceCount.textContent = getDisplaySentences().length;
   patternCount.textContent = note.patterns.length;
   renderCards(items);
   renderTable(items);
@@ -243,27 +251,55 @@ function renderHeader() {
 }
 
 function getCourseLabel(course) {
-  return [course.course, course.lesson || course.title, course.topic].filter(Boolean).join(" · ");
+  const label = [course.topic, course.lesson, course.title, course.course]
+    .map((value) => String(value || "").trim())
+    .find(Boolean);
+  const simpleLabel = (label || "课程学习笔记")
+    .replace(/^Thai:\s*/i, "")
+    .split(/[\/·]/)[0]
+    .replace(/\s*\([^)]*\)\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return simpleLabel.length > 36 ? `${simpleLabel.slice(0, 35)}...` : simpleLabel;
+}
+
+function closeCourseMenu() {
+  courseMenu.classList.add("hidden");
+  courseMenuButton.setAttribute("aria-expanded", "false");
+}
+
+function toggleCourseMenu() {
+  const isOpen = !courseMenu.classList.contains("hidden");
+  courseMenu.classList.toggle("hidden", isOpen);
+  courseMenuButton.setAttribute("aria-expanded", String(!isOpen));
 }
 
 function renderCourseSwitcher() {
   if (!courses.length) {
-    courseSelect.innerHTML = `<option value="">暂无已保存课程</option>`;
-    courseSelect.disabled = true;
+    courseSelectLabel.textContent = "暂无已保存课程";
+    courseMenu.innerHTML = "";
+    closeCourseMenu();
+    courseMenuButton.disabled = true;
     previousCourse.disabled = true;
     nextCourse.disabled = true;
     return;
   }
 
-  courseSelect.disabled = false;
+  courseMenuButton.disabled = false;
   previousCourse.disabled = courses.length < 2;
   nextCourse.disabled = courses.length < 2;
-  courseSelect.innerHTML = courses
-    .map((course) => `<option value="${course.id}">${getCourseLabel(course)}</option>`)
+  courseMenu.innerHTML = courses
+    .map((course) => {
+      const active = String(course.id) === String(note.id);
+      return `
+        <button class="course-menu-item ${active ? "active" : ""}" type="button" role="option" data-course-option="${course.id}" aria-selected="${active}">
+          ${escapeHtml(getCourseLabel(course))}
+        </button>
+      `;
+    })
     .join("");
-  if (note.id) {
-    courseSelect.value = String(note.id);
-  }
+  courseSelectLabel.textContent = getCourseLabel(courses.find((course) => String(course.id) === String(note.id)) || note);
 }
 
 function renderAll() {
@@ -346,6 +382,23 @@ function selectCourseByOffset(offset) {
 }
 
 document.addEventListener("click", (event) => {
+  const courseButton = event.target.closest("#courseMenuButton");
+  if (courseButton) {
+    toggleCourseMenu();
+    return;
+  }
+
+  const courseOption = event.target.closest("[data-course-option]");
+  if (courseOption) {
+    closeCourseMenu();
+    selectCourseById(courseOption.dataset.courseOption);
+    return;
+  }
+
+  if (!event.target.closest(".course-picker")) {
+    closeCourseMenu();
+  }
+
   const speakButton = event.target.closest("[data-speak]");
   if (speakButton) {
     speakThai(speakButton.dataset.speak);
@@ -369,11 +422,11 @@ document.addEventListener("click", (event) => {
 
 searchInput.addEventListener("input", renderVocabulary);
 hideMeaning.addEventListener("change", renderVocabulary);
-courseSelect.addEventListener("change", () => {
-  if (courseSelect.value) selectCourseById(courseSelect.value);
-});
 previousCourse.addEventListener("click", () => selectCourseByOffset(-1));
 nextCourse.addEventListener("click", () => selectCourseByOffset(1));
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeCourseMenu();
+});
 
 renderAll();
 loadSavedCourse().then((loaded) => {
