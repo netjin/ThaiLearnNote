@@ -98,19 +98,6 @@ h1 span {
   line-height: 1.7;
 }
 
-.date-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  min-height: 42px;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 8px 22px rgba(31, 53, 89, 0.08);
-}
-
 .nav-button,
 .text-link {
   color: var(--blue);
@@ -149,16 +136,11 @@ button.nav-button {
 
 .course-switcher {
   display: grid;
-  grid-template-columns: 56px minmax(260px, 560px) 56px;
+  grid-template-columns: 56px minmax(200px, 320px) 56px;
   gap: 10px;
   align-items: center;
   justify-content: center;
-  margin-bottom: 14px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 10px 26px rgba(31, 53, 89, 0.08);
+  margin-bottom: 18px;
 }
 
 .course-picker {
@@ -168,7 +150,7 @@ button.nav-button {
 
 .course-menu-button {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
   width: 100%;
@@ -192,9 +174,7 @@ button.nav-button {
 }
 
 .course-menu-button span {
-  color: var(--muted);
-  font-size: 0.86rem;
-  font-weight: 900;
+  display: none;
 }
 
 .course-menu-button strong {

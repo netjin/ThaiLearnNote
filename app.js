@@ -46,6 +46,7 @@ const visibleCount = document.querySelector("#visibleCount");
 const sentenceCount = document.querySelector("#sentenceCount");
 const patternCount = document.querySelector("#patternCount");
 const grammarNotes = document.querySelector("#grammarNotes");
+const courseEyebrow = document.querySelector("#courseEyebrow");
 const courseMenuButton = document.querySelector("#courseMenuButton");
 const courseSelectLabel = document.querySelector("#courseSelectLabel");
 const courseMenu = document.querySelector("#courseMenu");
@@ -245,9 +246,20 @@ function renderVocabulary() {
   renderTable(items);
 }
 
+function simplifyTitle(title) {
+  return String(title || "")
+    .replace(/^Thai:\s*/i, "")
+    .split(/[—-]\s*/)
+    .filter(Boolean)[0]
+    ?.replace(/\s+/g, " ")
+    .trim();
+}
+
 function renderHeader() {
-  document.querySelector("h1").innerHTML = `${note.title} <span>${note.topic}</span>`;
-  document.querySelector("#courseLabel").textContent = note.course || note.lesson || note.title;
+  const primaryTitle = simplifyTitle(note.lesson) || simplifyTitle(note.title) || "课程学习笔记";
+  const secondaryTitle = String(note.topic || "").trim();
+  courseEyebrow.textContent = note.course || "Thai Course Note";
+  document.querySelector("h1").innerHTML = `${escapeHtml(primaryTitle)}${secondaryTitle ? ` <span>${escapeHtml(secondaryTitle)}</span>` : ""}`;
 }
 
 function getCourseLabel(course) {
@@ -299,7 +311,7 @@ function renderCourseSwitcher() {
       `;
     })
     .join("");
-  courseSelectLabel.textContent = getCourseLabel(courses.find((course) => String(course.id) === String(note.id)) || note);
+  courseSelectLabel.textContent = "切换课程";
 }
 
 function renderAll() {

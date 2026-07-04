@@ -9,16 +9,12 @@
   <body>
     <header class="app-header">
       <div>
-        <p class="eyebrow">Thai Course Note</p>
+        <p id="courseEyebrow" class="eyebrow">Thai Course Note</p>
         <h1>Places <span>地点</span></h1>
         <p class="subtitle">按课程整理词汇、句型例句、语法要点和易混淆点，适合课后集中复习。</p>
       </div>
       <div class="header-actions">
         <a class="nav-button" href="./admin.html">后台管理</a>
-        <div class="date-chip" aria-label="当前课程">
-          <span aria-hidden="true">📚</span>
-          <strong id="courseLabel">7.1 学习笔记</strong>
-        </div>
       </div>
     </header>
 
@@ -28,7 +24,7 @@
         <div class="course-picker">
           <button id="courseMenuButton" class="course-menu-button" type="button" aria-haspopup="listbox" aria-expanded="false">
             <span>课程</span>
-            <strong id="courseSelectLabel">暂无已保存课程</strong>
+            <strong id="courseSelectLabel">切换课程</strong>
           </button>
           <div id="courseMenu" class="course-menu hidden" role="listbox"></div>
         </div>
